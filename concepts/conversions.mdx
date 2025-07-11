@@ -1,0 +1,128 @@
+---
+title: Document Conversions
+description: Understanding how SuperDoc converts documents
+icon: "arrows-rotate"
+---
+
+## How Document Conversion Works
+
+SuperDoc uses Gotenberg, a powerful document conversion engine, to transform DOCX files into PDFs while preserving formatting, styles, and layout.
+
+## Conversion Process
+
+<Steps>
+  <Step title="Upload">Your DOCX file is uploaded to our secure servers</Step>
+  <Step title="Validation">
+    We validate the file format and check for compatibility
+  </Step>
+  <Step title="Conversion">
+    Gotenberg processes the document using LibreOffice
+  </Step>
+  <Step title="Optimization">The PDF is optimized for size and quality</Step>
+  <Step title="Delivery">The converted PDF is returned in the response</Step>
+</Steps>
+
+## Supported Features
+
+<AccordionGroup>
+  <Accordion title="Text Formatting" icon="font">
+    - Fonts and font sizes - Bold, italic, underline - Text colors - Paragraph
+    alignment - Line spacing
+  </Accordion>
+
+  <Accordion title="Document Structure" icon="sitemap">
+    - Headers and footers - Page numbers - Table of contents - Sections and page
+    breaks - Columns
+  </Accordion>
+
+  <Accordion title="Media & Objects" icon="image">
+    - Images (JPEG, PNG, GIF) - Tables with formatting - Charts and graphs -
+    Text boxes - Shapes and drawings
+  </Accordion>
+
+  <Accordion title="Advanced Features" icon="wand-magic-sparkles">
+    - Hyperlinks - Bookmarks - Comments (converted to PDF annotations) - Track
+    changes (accepted changes only) - Form fields
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+### Optimize Your Documents
+
+<Tip>
+  For best results: - Use standard fonts (Arial, Times New Roman, Calibri) -
+  Embed custom fonts in your DOCX - Keep file size under 10MB for faster
+  processing - Use high-resolution images (300 DPI)
+</Tip>
+
+### Handling Large Files
+
+For files larger than 25MB:
+
+1. **Compress images** before conversion
+2. **Split documents** into smaller parts
+3. **Contact support** for enterprise options
+
+## Conversion Quality
+
+SuperDoc maintains high fidelity during conversion:
+
+| Feature           | Preservation Rate |
+| ----------------- | ----------------- |
+| Text formatting   | 99.9%             |
+| Layout & spacing  | 98%               |
+| Images & graphics | 100%              |
+| Tables            | 97%               |
+| Custom fonts      | 95%\*             |
+
+\*When fonts are properly embedded
+
+## Troubleshooting
+
+<Warning>Common issues and solutions:</Warning>
+
+### Fonts Not Displaying Correctly
+
+**Problem**: Custom fonts appear as default fonts in PDF
+
+**Solution**:
+
+- Embed fonts in your DOCX file
+- Use standard system fonts
+- Convert fonts to curves/outlines
+
+### Images Missing or Distorted
+
+**Problem**: Images don't appear or look wrong
+
+**Solution**:
+
+- Use standard image formats (JPEG, PNG)
+- Ensure images are embedded, not linked
+- Check image resolution (300 DPI recommended)
+
+### Layout Issues
+
+**Problem**: Page breaks or margins are different
+
+**Solution**:
+
+- Use explicit page breaks
+- Set fixed margins in DOCX
+- Avoid complex nested tables
+
+## Performance Considerations
+
+Typical conversion times:
+
+| File Size | Conversion Time |
+| --------- | --------------- |
+| < 1MB     | < 2 seconds     |
+| 1-5MB     | 2-5 seconds     |
+| 5-10MB    | 5-10 seconds    |
+| 10-25MB   | 10-30 seconds   |
+
+<Note>
+  Conversion times may vary based on document complexity and server load.
+</Note>{" "}

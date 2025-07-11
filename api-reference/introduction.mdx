@@ -1,33 +1,147 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: API Reference
+description: Complete reference for SuperDoc API endpoints
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
+All API requests should be made to:
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+```
+https://api.superdoc.dev/v1
+```
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All endpoints require authentication using Bearer tokens. Include your API key in the `Authorization` header:
+
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+<Card title="Get your API key" icon="key" href="https://dashboard.superdoc.dev">
+  Sign up for a free account to get your API key
+</Card>
+
+## Available Endpoints
+
+Our API provides the following endpoints:
+
+<CardGroup cols={2}>
+  <Card
+    title="Convert to PDF"
+    icon="file-pdf"
+    href="/api-reference/endpoint/convert-to-pdf"
+  >
+    Convert DOCX files to PDF format
+  </Card>
+  <Card
+    title="Public Convert"
+    icon="globe"
+    href="/api-reference/endpoint/public-convert"
+  >
+    Rate-limited public conversion endpoint
+  </Card>
+  <Card
+    title="Health Check"
+    icon="heart-pulse"
+    href="/api-reference/endpoint/health"
+  >
+    Check API service health and status
+  </Card>
+  <Card title="API Info" icon="info" href="/api-reference/endpoint/api-info">
+    Get API information and available endpoints
+  </Card>
+</CardGroup>
+
+## Request Format
+
+### Headers
+
+| Header          | Required | Description                            |
+| --------------- | -------- | -------------------------------------- |
+| `Authorization` | Yes\*    | Bearer token with your API key         |
+| `Content-Type`  | Varies   | `multipart/form-data` for file uploads |
+
+\*Not required for public endpoints
+
+### File Uploads
+
+For endpoints that accept files, use `multipart/form-data`:
+
+```bash
+curl -X POST https://api.superdoc.dev/v1/convert?format=pdf \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "file=@document.docx"
+```
+
+## Response Format
+
+### Success Response
+
+Successful file conversions return the converted file directly:
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/pdf
+Content-Disposition: attachment; filename="document.pdf"
+
+[Binary PDF data]
+```
+
+### Error Response
+
+Errors return JSON with consistent structure:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "code": "ERROR_CODE",
+  "error": "Error Type",
+  "message": "Human-readable error message",
+  "requestId": "req_abc123"
+}
 ```
+
+## Rate Limiting
+
+API requests are rate-limited based on your plan:
+
+| Plan       | Requests/Hour | Requests/Day |
+| ---------- | ------------- | ------------ |
+| Free       | 100           | 1,000        |
+| Pro        | 1,000         | 10,000       |
+| Enterprise | Unlimited     | Unlimited    |
+
+Rate limit headers are included in responses:
+
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1673612400
+```
+
+## File Size Limits
+
+- **Authenticated endpoints**: 25MB maximum
+- **Public endpoints**: 5MB maximum
+
+<Note>
+  Need to convert larger files? Contact us at api@superdoc.dev for enterprise
+  options.
+</Note>
+
+## SDK Support
+
+Official SDKs are available for:
+
+<CardGroup cols={3}>
+  <Card title="JavaScript/Node.js" icon="js" href="/sdks/javascript">
+    npm install @superdoc/api
+  </Card>
+  <Card title="Python" icon="python" href="/sdks/python">
+    pip install superdoc
+  </Card>
+  <Card title="More coming soon" icon="ellipsis" href="/sdks/overview">
+    PHP, Ruby, Go, and more
+  </Card>
+</CardGroup>

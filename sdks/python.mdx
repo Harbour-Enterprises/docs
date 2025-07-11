@@ -1,0 +1,804 @@
+---
+title: Python SDK
+description: Official SuperDoc SDK for Python applications
+icon: "python"
+---
+
+## Installation
+
+Install the SuperDoc Python SDK using pip:
+
+<CodeGroup>
+```bash pip
+pip install superdoc
+```
+
+```bash poetry
+poetry add superdoc
+```
+
+```bash pipenv
+pipenv install superdoc
+```
+
+</CodeGroup>
+
+## Quick Start
+
+<CodeGroup>
+```python Async/Await (Recommended)
+import asyncio
+from superdoc import SuperDoc
+
+async def main():
+client = SuperDoc('sd_live_pk_your_api_key')
+
+    # Convert a local DOCX file to PDF
+    pdf_content = await client.convert(
+        file='./document.docx',
+        format='pdf'
+    )
+
+    # Save the PDF
+    with open('output.pdf', 'wb') as f:
+        f.write(pdf_content)
+
+    print("Conversion successful!")
+
+if **name** == "**main**":
+asyncio.run(main())
+
+````
+
+```python Synchronous
+from superdoc import SuperDoc
+
+client = SuperDoc('sd_live_pk_your_api_key')
+
+# Convert a local DOCX file to PDF
+pdf_content = client.convert_sync(
+    file='./document.docx',
+    format='pdf'
+)
+
+# Save the PDF
+with open('output.pdf', 'wb') as f:
+    f.write(pdf_content)
+
+print("Conversion successful!")
+````
+
+```python File-like Objects
+import io
+from superdoc import SuperDoc
+
+client = SuperDoc('sd_live_pk_your_api_key')
+
+# Using BytesIO
+with open('document.docx', 'rb') as f:
+    file_data = f.read()
+
+file_obj = io.BytesIO(file_data)
+pdf_content = await client.convert(
+    file=file_obj,
+    format='pdf',
+    filename='document.docx'  # Recommended for file-like objects
+)
+```
+
+</CodeGroup>
+
+## Configuration
+
+### Basic Configuration
+
+```python
+from superdoc import SuperDoc
+
+client = SuperDoc(
+    api_key='sd_live_pk_your_api_key',
+    base_url='https://api.superdoc.dev',  # Custom API endpoint
+    timeout=60.0,                         # Request timeout in seconds
+    max_retries=3,                       # Number of retry attempts
+    retry_delay=1.0                      # Initial retry delay in seconds
+)
+```
+
+### Advanced Configuration
+
+```python
+from superdoc import SuperDoc
+import httpx
+
+client = SuperDoc(
+    api_key='sd_live_pk_your_api_key',
+
+    # API Configuration
+    base_url='https://api.superdoc.dev',
+    timeout=60.0,
+
+    # Retry Configuration
+    max_retries=3,
+    retry_delay=1.0,
+    retry_backoff='exponential',  # 'exponential' or 'linear'
+
+    # Rate Limiting
+    rate_limit_buffer=10,         # Reserve 10 requests before hitting limit
+
+    # HTTP Client Configuration
+    http_client=httpx.AsyncClient(
+        proxies="http://proxy.example.com:8080",
+        verify=True,              # SSL verification
+        headers={'User-Agent': 'MyApp/1.0'}
+    ),
+
+    # Logging
+    debug=True,                   # Enable debug logging
+    logger=None                   # Custom logger instance
+)
+```
+
+## API Methods
+
+### convert()
+
+Convert a DOCX file to PDF format (async).
+
+```python
+pdf_content = await client.convert(**options)
+```
+
+### convert_sync()
+
+Convert a DOCX file to PDF format (synchronous).
+
+```python
+pdf_content = client.convert_sync(**options)
+```
+
+#### Parameters
+
+<ResponseField name="file" type="str | Path | BinaryIO | bytes" required>
+  File to convert. Can be a file path, Path object, file-like object, or bytes
+</ResponseField>
+
+<ResponseField name="format" type="str">
+  Output format. Currently only 'pdf' is supported. Defaults to 'pdf'
+</ResponseField>
+
+<ResponseField name="filename" type="str">
+  Original filename for better error reporting and metadata
+</ResponseField>
+
+<ResponseField name="progress_callback" type="Callable">
+  Progress callback function: `def callback(bytes_uploaded: int, total_bytes:
+  int) -> None`
+</ResponseField>
+
+#### Returns
+
+<ResponseField name="pdf_content" type="bytes">
+  The converted PDF file as bytes
+</ResponseField>
+
+#### Examples
+
+<CodeGroup>
+```python File Path
+pdf_content = await client.convert(
+    file='./document.docx',
+    format='pdf'
+)
+```
+
+```python Path Object
+from pathlib import Path
+
+pdf_content = await client.convert(
+    file=Path('./document.docx'),
+    format='pdf'
+)
+```
+
+```python Bytes
+with open('document.docx', 'rb') as f:
+    file_bytes = f.read()
+
+pdf_content = await client.convert(
+    file=file_bytes,
+    format='pdf',
+    filename='document.docx'  # Recommended when using bytes
+)
+```
+
+```python With Progress Tracking
+def progress_callback(uploaded: int, total: int):
+    percentage = (uploaded / total) * 100
+    print(f"Upload progress: {percentage:.1f}%")
+
+pdf_content = await client.convert(
+    file='./large-document.docx',
+    format='pdf',
+    progress_callback=progress_callback
+)
+```
+
+</CodeGroup>
+
+### health()
+
+Check the API health status.
+
+```python
+health = await client.health()
+print(health.status)  # 'ok', 'degraded', or 'down'
+```
+
+### info()
+
+Get API information and available endpoints.
+
+```python
+info = await client.info()
+print(info.version)     # API version
+print(info.endpoints)   # Available endpoints
+```
+
+## Error Handling
+
+The SDK provides comprehensive error handling with specific exception types:
+
+```python
+from superdoc import SuperDoc
+from superdoc.exceptions import (
+    SuperDocError,
+    AuthenticationError,
+    RateLimitError,
+    ValidationError,
+    ConversionError
+)
+
+client = SuperDoc('sd_live_pk_your_api_key')
+
+try:
+    pdf_content = await client.convert(
+        file='./document.docx',
+        format='pdf'
+    )
+except AuthenticationError as e:
+    print(f'Authentication failed: {e.message}')
+    # Handle authentication error (e.g., refresh API key)
+except RateLimitError as e:
+    print(f'Rate limit exceeded: {e.message}')
+    print(f'Retry after: {e.retry_after} seconds')
+    # Handle rate limiting (e.g., implement backoff)
+except ValidationError as e:
+    print(f'Validation error: {e.message}')
+    # Handle validation errors (file type, size, etc.)
+except ConversionError as e:
+    print(f'Conversion failed: {e.message}')
+    print(f'Request ID: {e.request_id}')
+    # Handle conversion errors
+except SuperDocError as e:
+    print(f'API Error: {e.code} - {e.message}')
+    print(f'Request ID: {e.request_id}')
+    # Handle other API errors
+except Exception as e:
+    print(f'Unexpected error: {e}')
+    # Handle network or other errors
+```
+
+### Exception Types
+
+<AccordionGroup>
+  <Accordion title="SuperDocError" icon="exclamation-triangle">
+    Base class for all SuperDoc API errors
+    
+    ```python
+    class SuperDocError(Exception):
+        def __init__(self, message: str, code: str = None, 
+                     request_id: str = None, status_code: int = None):
+            self.message = message
+            self.code = code              # Error code (e.g., 'INVALID_FILE_TYPE')
+            self.request_id = request_id  # Request ID for support
+            self.status_code = status_code # HTTP status code
+            self.timestamp = datetime.now()
+    ```
+  </Accordion>
+
+{" "}
+<Accordion title="AuthenticationError" icon="lock">
+  Authentication-related errors (401, 403) ```python # Raised when API key is
+  invalid, missing, or expired except AuthenticationError as e: # Redirect to
+  login or refresh API key pass ```
+</Accordion>
+
+{" "}
+<Accordion title="RateLimitError" icon="gauge">
+  Rate limiting errors (429) ```python class RateLimitError(SuperDocError): def
+  __init__(self, message: str, retry_after: int, limit: int, remaining: int,
+  reset: datetime): super().__init__(message) self.retry_after = retry_after #
+  Seconds to wait self.limit = limit # Rate limit per hour self.remaining =
+  remaining # Remaining requests self.reset = reset # When limit resets ```
+</Accordion>
+
+{" "}
+<Accordion title="ValidationError" icon="exclamation">
+  Request validation errors (400) ```python # Raised for invalid file types,
+  file too large, etc. except ValidationError as e: # Show user-friendly
+  validation message pass ```
+</Accordion>
+
+  <Accordion title="ConversionError" icon="file-x">
+    Document conversion errors (500)
+    
+    ```python
+    # Raised when document conversion fails
+    except ConversionError as e:
+        # Log error with request_id for support
+        logger.error(f"Conversion failed: {e.request_id}")
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Type Hints
+
+The SDK includes comprehensive type hints for better IDE support:
+
+```python
+from typing import Union, Optional, BinaryIO, Callable
+from pathlib import Path
+from superdoc import SuperDoc
+from superdoc.types import ProgressCallback, HealthResponse, InfoResponse
+
+client: SuperDoc = SuperDoc('sd_live_pk_your_api_key')
+
+# Type hints for convert method
+file_input: Union[str, Path, BinaryIO, bytes] = './document.docx'
+progress_callback: Optional[ProgressCallback] = None
+
+pdf_content: bytes = await client.convert(
+    file=file_input,
+    format='pdf',
+    filename='document.docx',
+    progress_callback=progress_callback
+)
+
+# Type hints for other methods
+health: HealthResponse = await client.health()
+info: InfoResponse = await client.info()
+```
+
+### Custom Types
+
+```python
+from typing import Protocol
+from datetime import datetime
+
+class ProgressCallback(Protocol):
+    def __call__(self, uploaded: int, total: int) -> None: ...
+
+class HealthResponse:
+    status: str  # 'ok', 'degraded', 'down'
+    timestamp: datetime
+    checks: Optional[dict] = None
+
+class InfoResponse:
+    version: str
+    endpoints: list[str]
+    limits: dict
+```
+
+## Framework Integration
+
+### FastAPI
+
+```python
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.responses import StreamingResponse
+from superdoc import SuperDoc
+from superdoc.exceptions import SuperDocError
+import io
+
+app = FastAPI()
+client = SuperDoc(os.getenv('SUPERDOC_API_KEY'))
+
+@app.post("/convert")
+async def convert_document(file: UploadFile = File(...)):
+    if not file.filename.endswith('.docx'):
+        raise HTTPException(status_code=400, detail="Only DOCX files are supported")
+
+    try:
+        # Read file content
+        file_content = await file.read()
+
+        # Convert to PDF
+        pdf_content = await client.convert(
+            file=file_content,
+            format='pdf',
+            filename=file.filename
+        )
+
+        # Return PDF as streaming response
+        return StreamingResponse(
+            io.BytesIO(pdf_content),
+            media_type='application/pdf',
+            headers={'Content-Disposition': 'attachment; filename="converted.pdf"'}
+        )
+    except SuperDocError as e:
+        raise HTTPException(
+            status_code=e.status_code or 500,
+            detail={
+                'error': e.message,
+                'code': e.code,
+                'request_id': e.request_id
+            }
+        )
+```
+
+### Django
+
+```python
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from superdoc import SuperDoc
+from superdoc.exceptions import SuperDocError
+import asyncio
+import os
+
+client = SuperDoc(os.getenv('SUPERDOC_API_KEY'))
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def convert_document(request):
+    if 'file' not in request.FILES:
+        return JsonResponse({'error': 'No file provided'}, status=400)
+
+    uploaded_file = request.FILES['file']
+
+    if not uploaded_file.name.endswith('.docx'):
+        return JsonResponse({'error': 'Only DOCX files are supported'}, status=400)
+
+    try:
+        # Django doesn't support async views by default, so we use asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        pdf_content = loop.run_until_complete(
+            client.convert(
+                file=uploaded_file.read(),
+                format='pdf',
+                filename=uploaded_file.name
+            )
+        )
+
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="converted.pdf"'
+        return response
+
+    except SuperDocError as e:
+        return JsonResponse({
+            'error': e.message,
+            'code': e.code,
+            'request_id': e.request_id
+        }, status=e.status_code or 500)
+    finally:
+        loop.close()
+```
+
+### Flask
+
+```python
+from flask import Flask, request, send_file, jsonify
+from superdoc import SuperDoc
+from superdoc.exceptions import SuperDocError
+import asyncio
+import io
+import os
+
+app = Flask(__name__)
+client = SuperDoc(os.getenv('SUPERDOC_API_KEY'))
+
+@app.route('/convert', methods=['POST'])
+def convert_document():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+
+    if not file.filename.endswith('.docx'):
+        return jsonify({'error': 'Only DOCX files are supported'}), 400
+
+    try:
+        # Flask doesn't support async by default
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        pdf_content = loop.run_until_complete(
+            client.convert(
+                file=file.read(),
+                format='pdf',
+                filename=file.filename
+            )
+        )
+
+        return send_file(
+            io.BytesIO(pdf_content),
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name='converted.pdf'
+        )
+
+    except SuperDocError as e:
+        return jsonify({
+            'error': e.message,
+            'code': e.code,
+            'request_id': e.request_id
+        }), e.status_code or 500
+    finally:
+        loop.close()
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Async vs Sync" icon="clock">
+    - **Use async methods** for better performance in web applications
+    - **Use sync methods** for simple scripts or when async isn't available
+    - **Don't mix** async and sync methods in the same application
+    - **Handle event loops** properly in frameworks like Django/Flask
+  </Accordion>
+
+{" "}
+<Accordion title="Error Handling" icon="exclamation-triangle">
+  - **Catch specific exceptions** for different error types - **Log request
+  IDs** for easier debugging and support - **Implement retry logic** for
+  transient errors - **Provide user feedback** with meaningful error messages
+</Accordion>
+
+{" "}
+<Accordion title="File Handling" icon="file">
+  - **Use file paths** for local files when possible - **Use BytesIO** for
+  in-memory file operations - **Specify filename** when using bytes or file
+  objects - **Stream large files** to avoid memory issues
+</Accordion>
+
+  <Accordion title="Performance" icon="rocket">
+    - **Reuse client instances** to avoid connection overhead
+    - **Implement connection pooling** for high-throughput applications
+    - **Use progress callbacks** for better user experience
+    - **Handle rate limits** gracefully with exponential backoff
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Usage
+
+### Custom Retry Logic
+
+```python
+import asyncio
+from superdoc import SuperDoc
+from superdoc.exceptions import RateLimitError, SuperDocError
+
+client = SuperDoc('sd_live_pk_your_api_key', max_retries=0)  # Disable built-in retries
+
+async def convert_with_custom_retry(file_path: str, max_retries: int = 3):
+    for attempt in range(1, max_retries + 1):
+        try:
+            return await client.convert(file=file_path, format='pdf')
+        except RateLimitError as e:
+            if attempt == max_retries:
+                raise
+            # Wait for rate limit reset
+            await asyncio.sleep(e.retry_after)
+        except SuperDocError as e:
+            if attempt == max_retries or e.status_code < 500:
+                raise
+            # Exponential backoff for server errors
+            delay = 2 ** (attempt - 1)
+            await asyncio.sleep(delay)
+```
+
+### Batch Processing
+
+```python
+import asyncio
+from typing import List, Dict, Any
+from pathlib import Path
+
+async def convert_batch(
+    files: List[Path],
+    concurrency: int = 3,
+    progress_callback: callable = None
+) -> Dict[str, Any]:
+    """Convert multiple files with concurrency control."""
+    semaphore = asyncio.Semaphore(concurrency)
+    results = []
+    errors = []
+
+    async def convert_single(file_path: Path, index: int):
+        async with semaphore:
+            try:
+                pdf_content = await client.convert(
+                    file=str(file_path),
+                    format='pdf'
+                )
+                result = {
+                    'success': True,
+                    'file': str(file_path),
+                    'pdf_content': pdf_content,
+                    'index': index
+                }
+                if progress_callback:
+                    progress_callback(index, len(files), True)
+                return result
+            except SuperDocError as e:
+                error = {
+                    'success': False,
+                    'file': str(file_path),
+                    'error': str(e),
+                    'code': e.code,
+                    'index': index
+                }
+                errors.append(error)
+                if progress_callback:
+                    progress_callback(index, len(files), False)
+                return error
+
+    # Create tasks for all files
+    tasks = [
+        convert_single(file_path, i)
+        for i, file_path in enumerate(files)
+    ]
+
+    # Wait for all conversions to complete
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    successful = [r for r in results if r.get('success')]
+    failed = [r for r in results if not r.get('success')]
+
+    return {
+        'successful': successful,
+        'failed': failed,
+        'total': len(files),
+        'success_rate': len(successful) / len(files)
+    }
+
+# Usage
+async def main():
+    files = list(Path('./documents').glob('*.docx'))
+
+    def progress(current, total, success):
+        status = "✓" if success else "✗"
+        print(f"{status} Processed {current + 1}/{total} files")
+
+    results = await convert_batch(files, concurrency=3, progress_callback=progress)
+    print(f"Conversion complete: {results['success_rate']:.1%} success rate")
+```
+
+### Context Manager
+
+```python
+from contextlib import asynccontextmanager
+from superdoc import SuperDoc
+
+@asynccontextmanager
+async def superdoc_client(api_key: str):
+    """Context manager for SuperDoc client with proper cleanup."""
+    client = SuperDoc(api_key)
+    try:
+        yield client
+    finally:
+        # Close HTTP client connections
+        await client.close()
+
+# Usage
+async def convert_documents():
+    async with superdoc_client('sd_live_pk_your_api_key') as client:
+        pdf1 = await client.convert(file='doc1.docx', format='pdf')
+        pdf2 = await client.convert(file='doc2.docx', format='pdf')
+        return pdf1, pdf2
+```
+
+## Migration Guide
+
+### From requests
+
+If you're currently using the `requests` library directly:
+
+<CodeGroup>
+```python Before (requests)
+import requests
+
+def convert_document(file_path: str, api_key: str):
+with open(file_path, 'rb') as f:
+files = {'file': f}
+headers = {'Authorization': f'Bearer {api_key}'}
+
+        response = requests.post(
+            'https://api.superdoc.dev/v1/convert?format=pdf',
+            headers=headers,
+            files=files
+        )
+
+    if response.status_code == 200:
+        return response.content
+    else:
+        raise Exception(f"Conversion failed: {response.text}")
+
+````
+
+```python After (SuperDoc SDK)
+from superdoc import SuperDoc
+
+async def convert_document(file_path: str, api_key: str):
+    client = SuperDoc(api_key)
+    return await client.convert(file=file_path, format='pdf')
+````
+
+</CodeGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Installation issues" icon="download">
+    **Problem**: `pip install superdoc` fails
+    
+    **Solution**: 
+    - Ensure Python 3.8+ is installed
+    - Upgrade pip: `pip install --upgrade pip`
+    - Use virtual environment: `python -m venv venv && source venv/bin/activate`
+    - Check for conflicting packages
+  </Accordion>
+
+{" "}
+<Accordion title="Import errors" icon="exclamation">
+  **Problem**: `ModuleNotFoundError: No module named 'superdoc'` **Solution**: -
+  Verify installation: `pip list | grep superdoc` - Check Python path: `python
+  -c "import sys; print(sys.path)"` - Reinstall: `pip uninstall superdoc && pip
+  install superdoc`
+</Accordion>
+
+{" "}
+<Accordion title="Async/await issues" icon="clock">
+  **Problem**: `RuntimeError: asyncio.run() cannot be called from a running
+  event loop` **Solution**: - Use `await` instead of `asyncio.run()` inside
+  async functions - For sync contexts, use `convert_sync()` method - In Jupyter
+  notebooks, use `await` directly
+</Accordion>
+
+  <Accordion title="SSL/TLS errors" icon="shield">
+    **Problem**: SSL verification errors
+    
+    **Solution**:
+    - Update certificates: `pip install --upgrade certifi`
+    - Use custom SSL context if needed
+    - Check corporate firewall/proxy settings
+    - Verify system time is correct
+  </Accordion>
+</AccordionGroup>
+
+## Support
+
+Need help with the Python SDK?
+
+<CardGroup cols={2}>
+  <Card
+    title="GitHub Issues"
+    icon="github"
+    href="https://github.com/superdoc/python-sdk/issues"
+  >
+    Report bugs and request features
+  </Card>
+  <Card
+    title="Discord Community"
+    icon="discord"
+    href="https://discord.gg/superdoc"
+  >
+    Get help from the community
+  </Card>
+</CardGroup>{" "}

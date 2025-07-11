@@ -1,0 +1,9 @@
+{
+	"scripts": {
+		"dev": "mint dev",
+		"build": "mint build"
+	},
+	"dependencies": {
+		"mint": "^4.2.14"
+	}
+}

@@ -1,0 +1,266 @@
+---
+title: SDK Overview
+description: Official client libraries for the SuperDoc API
+icon: "code"
+---
+
+## Available SDKs
+
+SuperDoc provides official SDKs for popular programming languages, making it easy to integrate document conversion into your applications.
+
+<CardGroup cols={2}>
+  <Card title="JavaScript/Node.js" icon="js" href="/sdks/javascript">
+    Full-featured SDK for Node.js and browser environments
+  </Card>
+  <Card title="Python" icon="python" href="/sdks/python">
+    Pythonic interface with async support
+  </Card>
+  <Card title="PHP (Coming Soon)" icon="php" href="#">
+    Laravel and framework-agnostic PHP support
+  </Card>
+  <Card title="Go (Coming Soon)" icon="golang" href="#">
+    High-performance Go client library
+  </Card>
+</CardGroup>
+
+## Why Use an SDK?
+
+<AccordionGroup>
+  <Accordion title="Simplified Integration" icon="puzzle-piece">
+    - Pre-built functions for all API endpoints - Automatic request/response
+    handling - Built-in error handling and retries - Type safety (where
+    applicable)
+  </Accordion>
+
+  <Accordion title="Better Developer Experience" icon="sparkles">
+    - IntelliSense and autocomplete support - Comprehensive documentation and
+    examples - Consistent API across different languages - Regular updates and
+    maintenance
+  </Accordion>
+
+  <Accordion title="Advanced Features" icon="rocket">
+    - Automatic rate limiting and backoff - File upload progress tracking -
+    Webhook signature verification - Configuration management
+  </Accordion>
+
+  <Accordion title="Production Ready" icon="shield">
+    - Comprehensive test coverage - Security best practices - Performance
+    optimizations - Monitoring and logging support
+  </Accordion>
+</AccordionGroup>
+
+## Common Features
+
+All SuperDoc SDKs include:
+
+### Core Functionality
+
+- **Document conversion** - DOCX to PDF conversion
+- **File handling** - Support for local files, streams, and URLs
+- **Error handling** - Comprehensive error types and messages
+- **Authentication** - Automatic API key management
+
+### Advanced Features
+
+- **Retry logic** - Automatic retries with exponential backoff
+- **Rate limiting** - Built-in rate limit awareness
+- **Progress tracking** - Upload and conversion progress callbacks
+- **Webhooks** - Signature verification for webhook endpoints
+
+### Configuration Options
+
+- **API endpoints** - Custom base URLs for enterprise customers
+- **Timeouts** - Configurable request and processing timeouts
+- **Proxy support** - HTTP/HTTPS proxy configuration
+- **Logging** - Configurable logging levels and outputs
+
+## Installation Examples
+
+<CodeGroup>
+```bash JavaScript/Node.js
+npm install @superdoc/api
+# or
+yarn add @superdoc/api
+```
+
+```bash Python
+pip install superdoc
+# or
+poetry add superdoc
+```
+
+```bash PHP (Coming Soon)
+composer require superdoc/api
+```
+
+```bash Go (Coming Soon)
+go get github.com/superdoc/go-sdk
+```
+
+</CodeGroup>
+
+## Quick Start Examples
+
+<CodeGroup>
+```javascript JavaScript/Node.js
+import { SuperDoc } from '@superdoc/api';
+
+const client = new SuperDoc('sd_live_pk_your_api_key');
+
+const pdfBuffer = await client.convert({
+file: './document.docx',
+format: 'pdf'
+});
+
+````
+
+```python Python
+from superdoc import SuperDoc
+
+client = SuperDoc('sd_live_pk_your_api_key')
+
+pdf_content = await client.convert(
+    file='./document.docx',
+    format='pdf'
+)
+````
+
+```php PHP (Coming Soon)
+use SuperDoc\Client;
+
+$client = new Client('sd_live_pk_your_api_key');
+
+$pdf = $client->convert([
+    'file' => './document.docx',
+    'format' => 'pdf'
+]);
+```
+
+```go Go (Coming Soon)
+package main
+
+import "github.com/superdoc/go-sdk"
+
+client := superdoc.New("sd_live_pk_your_api_key")
+
+pdf, err := client.Convert(superdoc.ConvertOptions{
+    File:   "./document.docx",
+    Format: "pdf",
+})
+```
+
+</CodeGroup>
+
+## SDK Comparison
+
+| Feature                   | JavaScript       | Python          | PHP\*   | Go\*      |
+| ------------------------- | ---------------- | --------------- | ------- | --------- |
+| **Basic Conversion**      | ✅               | ✅              | 🚧      | 🚧        |
+| **Async/Await**           | ✅               | ✅              | 🚧      | 🚧        |
+| **File Streams**          | ✅               | ✅              | 🚧      | 🚧        |
+| **Progress Tracking**     | ✅               | ✅              | 🚧      | 🚧        |
+| **Webhook Verification**  | ✅               | ✅              | 🚧      | 🚧        |
+| **Rate Limiting**         | ✅               | ✅              | 🚧      | 🚧        |
+| **TypeScript Support**    | ✅               | N/A             | N/A     | N/A       |
+| **Framework Integration** | Express, Next.js | FastAPI, Django | Laravel | Gin, Echo |
+
+\*Coming soon
+
+## Community SDKs
+
+While we work on official SDKs for additional languages, the community has created some excellent alternatives:
+
+<Warning>
+  Community SDKs are not officially maintained by SuperDoc. Use at your own
+  discretion and verify compatibility.
+</Warning>
+
+<CardGroup cols={2}>
+  <Card
+    title="Ruby (Community)"
+    icon="gem"
+    href="https://github.com/community/superdoc-ruby"
+  >
+    Ruby gem for SuperDoc API integration
+  </Card>
+  <Card
+    title="Java (Community)"
+    icon="java"
+    href="https://github.com/community/superdoc-java"
+  >
+    Java client library with Spring Boot support
+  </Card>
+</CardGroup>
+
+## Contributing
+
+We welcome contributions to our SDKs! Here's how you can help:
+
+### Reporting Issues
+
+- **Bug reports** - Use GitHub issues for bugs
+- **Feature requests** - Suggest new features or improvements
+- **Documentation** - Help improve our examples and guides
+
+### Code Contributions
+
+- **Pull requests** - Submit fixes and improvements
+- **Testing** - Help us expand our test coverage
+- **Examples** - Create usage examples and tutorials
+
+### SDK Requests
+
+Missing your favorite language? Let us know:
+
+<CardGroup cols={2}>
+  <Card title="Request an SDK" icon="plus" href="mailto:sdks@superdoc.dev">
+    Tell us what language/framework you need
+  </Card>
+  <Card
+    title="Community Guidelines"
+    icon="users"
+    href="/community/sdk-guidelines"
+  >
+    Guidelines for community SDK development
+  </Card>
+</CardGroup>
+
+## Support
+
+### Documentation
+
+- **API Reference** - Complete endpoint documentation
+- **Examples** - Real-world usage examples
+- **Tutorials** - Step-by-step integration guides
+
+### Getting Help
+
+- **GitHub Issues** - For SDK-specific bugs and questions
+- **Discord** - Join our developer community
+- **Email Support** - Direct support for enterprise customers
+
+<CardGroup cols={2}>
+  <Card title="Join Discord" icon="discord" href="https://discord.gg/superdoc">
+    Chat with other developers and our team
+  </Card>
+  <Card
+    title="Email Support"
+    icon="envelope"
+    href="mailto:support@superdoc.dev"
+  >
+    Get help with integration issues
+  </Card>
+</CardGroup>
+
+## Stay Updated
+
+Follow our progress on upcoming SDKs and new features:
+
+- **GitHub Releases** - Get notified of new SDK versions
+- **Developer Newsletter** - Monthly updates and tips
+- **Twitter** - Follow @superdoc for announcements
+
+<Note>
+  All SDKs follow semantic versioning and maintain backward compatibility within
+  major versions.
+</Note>{" "}

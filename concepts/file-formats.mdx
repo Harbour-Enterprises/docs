@@ -1,0 +1,213 @@
+---
+title: File Formats
+description: Supported input and output formats for document conversion
+icon: "file-lines"
+---
+
+## Supported Input Formats
+
+Currently, SuperDoc API supports DOCX (Microsoft Word) files as input:
+
+<Card title="DOCX (Microsoft Word)" icon="file-word">
+  **`.docx`** - Office Open XML format - Full formatting support - Maximum file
+  size: 25MB (authenticated) / 5MB (public) - Supports all modern Word features
+</Card>
+
+### DOCX Compatibility
+
+SuperDoc is compatible with DOCX files created by:
+
+- **Microsoft Word** (2007 and later)
+- **Google Docs** (exported as DOCX)
+- **LibreOffice Writer** (saved as DOCX)
+- **Apple Pages** (exported as DOCX)
+- **Other Office suites** that support OOXML
+
+<Info>
+  Looking for support for other input formats? [Contact
+  us](mailto:api@superdoc.dev) to discuss your needs.
+</Info>
+
+## Supported Output Formats
+
+SuperDoc converts documents to PDF format:
+
+<Card title="PDF (Portable Document Format)" icon="file-pdf">
+  **`.pdf`** - Adobe PDF format - High-fidelity conversion - Preserves
+  formatting and layout - Universal compatibility - Optimized for web and print
+</Card>
+
+### PDF Features
+
+Our PDF output includes:
+
+<CardGroup cols={2}>
+  <Card title="Text Preservation" icon="font">
+    - All text remains selectable - Fonts embedded or substituted - Character
+    encoding preserved
+  </Card>
+  <Card title="Layout Fidelity" icon="layout">
+    - Page dimensions maintained - Margins and spacing preserved - Column
+    layouts intact
+  </Card>
+  <Card title="Interactive Elements" icon="mouse-pointer">
+    - Clickable hyperlinks - Bookmarks for navigation - Form fields (when
+    applicable)
+  </Card>
+  <Card title="Metadata" icon="tag">
+    - Document properties - Creation timestamps - Author information
+  </Card>
+</CardGroup>
+
+## File Size Considerations
+
+### Input File Limits
+
+| Endpoint Type | Maximum Size | Recommended Size |
+| ------------- | ------------ | ---------------- |
+| Authenticated | 25MB         | < 10MB           |
+| Public        | 5MB          | < 2MB            |
+
+### Output File Optimization
+
+SuperDoc automatically optimizes PDF output:
+
+- **Image compression** - Reduces file size while maintaining quality
+- **Font subsetting** - Includes only used characters
+- **Metadata cleanup** - Removes unnecessary data
+- **Structure optimization** - Efficient PDF organization
+
+<Tip>
+  Large input files result in proportionally large PDF outputs. Consider
+  compressing images in your DOCX before conversion.
+</Tip>
+
+## Format-Specific Features
+
+### DOCX Input Features
+
+<AccordionGroup>
+  <Accordion title="Text and Paragraphs" icon="paragraph">
+    - Rich text formatting (bold, italic, underline, etc.)
+    - Multiple font families and sizes
+    - Text colors and highlighting
+    - Paragraph alignment and spacing
+    - Bullet points and numbered lists
+    - Indentation and hanging indents
+  </Accordion>
+
+{" "}
+<Accordion title="Document Structure" icon="sitemap">
+  - Multiple sections with different formatting - Headers and footers (including
+  different first page) - Page numbers and fields - Table of contents -
+  Footnotes and endnotes - Page and section breaks
+</Accordion>
+
+{" "}
+<Accordion title="Tables and Objects" icon="table">
+  - Complex table structures - Cell formatting and borders - Table styles and
+  themes - Merged cells and nested tables - Images and embedded objects - Charts
+  and SmartArt graphics
+</Accordion>
+
+  <Accordion title="Advanced Elements" icon="magic">
+    - Hyperlinks (internal and external)
+    - Cross-references
+    - Comments and track changes*
+    - Form fields and controls
+    - Text boxes and shapes
+    - Watermarks and backgrounds
+  </Accordion>
+</AccordionGroup>
+
+\*Track changes are flattened (accepted changes only appear in PDF)
+
+### PDF Output Characteristics
+
+<AccordionGroup>
+  <Accordion title="PDF Version" icon="file-pdf">
+    - **PDF 1.4 compatibility** - Ensures maximum compatibility
+    - **PDF/A compliance** available on request
+    - **Searchable text** - All text remains selectable
+    - **Vector graphics** - Scalable elements preserved
+  </Accordion>
+
+{" "}
+<Accordion title="Security Features" icon="shield">
+  - No password protection by default - Print permissions enabled - Copy
+  permissions enabled - Modification restrictions available on request
+</Accordion>
+
+  <Accordion title="Accessibility" icon="universal-access">
+    - Tagged PDF structure
+    - Alternative text for images (when present in source)
+    - Reading order preservation
+    - Logical document structure
+  </Accordion>
+</AccordionGroup>
+
+## Quality Comparison
+
+### Before and After Conversion
+
+| Element         | DOCX Source         | PDF Output    | Fidelity |
+| --------------- | ------------------- | ------------- | -------- |
+| Text formatting | ✅ Rich formatting  | ✅ Preserved  | 99.9%    |
+| Page layout     | ✅ Complex layouts  | ✅ Maintained | 98%      |
+| Images          | ✅ High resolution  | ✅ Optimized  | 100%     |
+| Tables          | ✅ Complex tables   | ✅ Preserved  | 97%      |
+| Hyperlinks      | ✅ Active links     | ✅ Clickable  | 100%     |
+| Comments        | ✅ Reviewers' notes | ⚠️ Flattened  | N/A      |
+
+## Future Format Support
+
+We're actively working on expanding format support:
+
+<CardGroup cols={2}>
+  <Card title="Coming Soon" icon="clock">
+    - **RTF** (Rich Text Format) - **ODT** (OpenDocument Text) - **HTML** to PDF
+    conversion
+  </Card>
+  <Card title="Under Consideration" icon="lightbulb">
+    - **PowerPoint** to PDF - **Excel** to PDF - **Markdown** to PDF
+  </Card>
+</CardGroup>
+
+<Note>
+  Have a specific format requirement? [Let us know](mailto:api@superdoc.dev) and
+  we'll consider adding it to our roadmap.
+</Note>
+
+## Best Practices by Format
+
+### Optimizing DOCX for Conversion
+
+1. **Use standard fonts** - Arial, Times New Roman, Calibri work best
+2. **Embed custom fonts** - Ensure fonts are included in the DOCX file
+3. **Optimize images** - Use appropriate resolution (300 DPI for print, 150 DPI for web)
+4. **Simplify layouts** - Avoid overly complex table structures
+5. **Test compatibility** - Preview in different Word versions
+
+### PDF Output Optimization
+
+1. **Consider end use** - Web viewing vs. print requirements
+2. **Monitor file size** - Balance quality with download speed
+3. **Verify links** - Test hyperlinks in the output PDF
+4. **Check accessibility** - Ensure proper reading order
+5. **Validate structure** - Confirm all elements converted correctly
+
+## Technical Specifications
+
+### DOCX Processing
+
+- **Engine**: LibreOffice-based conversion
+- **Memory limit**: 1GB per conversion
+- **Timeout**: 60 seconds maximum
+- **Concurrent processing**: Load-balanced across multiple servers
+
+### PDF Generation
+
+- **Renderer**: Gotenberg PDF engine
+- **Compression**: Automatic optimization
+- **Color space**: RGB (can convert to CMYK on request)
+- **Resolution**: Maintains source image DPI up to 300 DPI

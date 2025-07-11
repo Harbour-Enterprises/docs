@@ -1,71 +1,57 @@
 ---
-title: Introduction
-description: "Welcome to the home of your new documentation"
+title: SuperDoc API Documentation
+description: Convert documents at scale with the SuperDoc API
 ---
 
-<img
-  className="block dark:hidden"
-  src="/images/hero-light.png"
-  alt="Hero Light"
-/>
-<img
-  className="hidden dark:block"
-  src="/images/hero-dark.png"
-  alt="Hero Dark"
-/>
+<img className="block dark:hidden" src="/images/hero.png" alt="SuperDoc API" />
+<img className="hidden dark:block" src="/images/hero.png" alt="SuperDoc API" />
 
-## Setting up
+## Welcome to SuperDoc API
 
-The first step to world-class documentation is setting up your editing environments.
+The SuperDoc API provides high-performance document conversion capabilities, allowing you to seamlessly convert DOCX files to PDF with excellent Microsoft Word compatibility.
 
 <CardGroup cols={2}>
-  <Card
-    title="Edit Your Docs"
-    icon="pen-to-square"
-    href="https://mintlify.com/docs/quickstart"
-  >
-    Get your docs set up locally for easy development
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get up and running with the SuperDoc API in under 5 minutes
   </Card>
-  <Card
-    title="Preview Changes"
-    icon="image"
-    href="https://mintlify.com/docs/development"
-  >
-    Preview your changes before you push to make sure they're perfect
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore our REST API endpoints with interactive documentation
+  </Card>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Learn how to authenticate your API requests
+  </Card>
+  <Card title="Rate Limits" icon="gauge" href="/rate-limits">
+    Understand our rate limiting and best practices
   </Card>
 </CardGroup>
 
-## Make it yours
+## Core Features
 
-Update your docs to your brand and add valuable content for the best user conversion.
-
-<CardGroup cols={2}>
-  <Card
-    title="Customize Style"
-    icon="palette"
-    href="https://mintlify.com/docs/settings/global"
-  >
-    Customize your docs to your company's colors and brands
+<CardGroup cols={3}>
+  <Card title="High Performance" icon="bolt">
+    Process documents at scale with our optimized conversion engine powered by
+    Gotenberg
   </Card>
-  <Card
-    title="Reference APIs"
-    icon="code"
-    href="https://mintlify.com/docs/api-playground/openapi"
-  >
-    Automatically generate endpoints from an OpenAPI spec
+  <Card title="Word Compatibility" icon="file-word">
+    Excellent Microsoft Word formatting preservation during conversion
   </Card>
-  <Card
-    title="Add Components"
-    icon="screwdriver-wrench"
-    href="https://mintlify.com/docs/content/components/accordions"
-  >
-    Build interactive features and designs to guide your users
-  </Card>
-  <Card
-    title="Get Inspiration"
-    icon="stars"
-    href="https://mintlify.com/customers"
-  >
-    Check out our showcase of our favorite documentation
+  <Card title="Simple Integration" icon="plug">
+    RESTful API with comprehensive SDKs for popular programming languages
   </Card>
 </CardGroup>
+
+## Quick Example
+
+```bash
+curl -X POST https://api.superdoc.dev/v1/convert?format=pdf \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -F "file=@document.docx" \
+  -o converted.pdf
+```
+
+## Popular Use Cases
+
+- **Contract Management**: Convert Word contracts to PDF for signing
+- **Report Generation**: Transform DOCX reports into shareable PDFs
+- **Document Archival**: Preserve documents in PDF format
+- **Automated Workflows**: Integrate document conversion into your pipelines

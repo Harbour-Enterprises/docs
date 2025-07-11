@@ -1,0 +1,757 @@
+---
+title: JavaScript/Node.js SDK
+description: Official SuperDoc SDK for JavaScript and Node.js applications
+icon: "js"
+---
+
+## Installation
+
+Install the SuperDoc JavaScript SDK using npm or yarn:
+
+<CodeGroup>
+```bash npm
+npm install @superdoc/api
+```
+
+```bash yarn
+yarn add @superdoc/api
+```
+
+```bash pnpm
+pnpm add @superdoc/api
+```
+
+</CodeGroup>
+
+## Quick Start
+
+<CodeGroup>
+```javascript ES6 Modules
+import { SuperDoc } from '@superdoc/api';
+
+const client = new SuperDoc('sd_live_pk_your_api_key');
+
+// Convert a local DOCX file to PDF
+const pdfBuffer = await client.convert({
+file: './document.docx',
+format: 'pdf'
+});
+
+// Save the PDF
+import fs from 'fs';
+fs.writeFileSync('output.pdf', pdfBuffer);
+
+````
+
+```javascript CommonJS
+const { SuperDoc } = require('@superdoc/api');
+
+const client = new SuperDoc('sd_live_pk_your_api_key');
+
+async function convertDocument() {
+  try {
+    const pdfBuffer = await client.convert({
+      file: './document.docx',
+      format: 'pdf'
+    });
+
+    require('fs').writeFileSync('output.pdf', pdfBuffer);
+    console.log('Conversion successful!');
+  } catch (error) {
+    console.error('Conversion failed:', error.message);
+  }
+}
+
+convertDocument();
+````
+
+```javascript Browser (with bundler)
+import { SuperDoc } from "@superdoc/api";
+
+// Note: API keys should never be exposed in browser code
+// Use a proxy server for production applications
+const client = new SuperDoc(process.env.SUPERDOC_API_KEY);
+
+document
+  .getElementById("fileInput")
+  .addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      try {
+        const pdfBlob = await client.convert({
+          file: file,
+          format: "pdf",
+        });
+
+        // Create download link
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "converted.pdf";
+        a.click();
+      } catch (error) {
+        alert("Conversion failed: " + error.message);
+      }
+    }
+  });
+```
+
+</CodeGroup>
+
+## Configuration
+
+### Basic Configuration
+
+```javascript
+const client = new SuperDoc("sd_live_pk_your_api_key", {
+  baseURL: "https://api.superdoc.dev", // Custom API endpoint
+  timeout: 60000, // Request timeout in ms
+  retries: 3, // Number of retry attempts
+  retryDelay: 1000, // Initial retry delay in ms
+});
+```
+
+### Advanced Configuration
+
+```javascript
+const client = new SuperDoc("sd_live_pk_your_api_key", {
+  // API Configuration
+  baseURL: "https://api.superdoc.dev",
+  timeout: 60000,
+
+  // Retry Configuration
+  retries: 3,
+  retryDelay: 1000,
+  retryBackoff: "exponential", // 'exponential' or 'linear'
+
+  // Rate Limiting
+  rateLimitBuffer: 10, // Reserve 10 requests before hitting limit
+
+  // Proxy Configuration (Node.js only)
+  proxy: {
+    protocol: "http",
+    host: "proxy.example.com",
+    port: 8080,
+    auth: {
+      username: "proxy_user",
+      password: "proxy_pass",
+    },
+  },
+
+  // Logging
+  debug: true, // Enable debug logging
+  logger: console, // Custom logger instance
+});
+```
+
+## API Methods
+
+### convert()
+
+Convert a DOCX file to PDF format.
+
+```javascript
+const result = await client.convert(options);
+```
+
+#### Parameters
+
+<ResponseField name="options" type="object" required>
+  Conversion options object
+  <Expandable title="options properties">
+    <ResponseField
+      name="file"
+      type="string | File | Buffer | ReadableStream"
+      required
+    >
+      File to convert. Can be a file path (Node.js), File object (browser),
+      Buffer, or ReadableStream
+    </ResponseField>
+
+    <ResponseField name="format" type="string">
+      Output format. Currently only 'pdf' is supported. Defaults to 'pdf'
+    </ResponseField>
+
+    <ResponseField name="filename" type="string">
+      Original filename for better error reporting and metadata
+    </ResponseField>
+
+    <ResponseField name="onProgress" type="function">
+      Progress callback function: `(progress: ProgressEvent) => void`
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+#### Returns
+
+<ResponseField name="result" type="Buffer | Blob">
+  - **Node.js**: Returns a Buffer containing the PDF data - **Browser**: Returns
+  a Blob containing the PDF data
+</ResponseField>
+
+#### Examples
+
+<CodeGroup>
+```javascript File Path (Node.js)
+const pdf = await client.convert({
+  file: './document.docx',
+  format: 'pdf'
+});
+```
+
+```javascript File Object (Browser)
+const fileInput = document.getElementById("file");
+const file = fileInput.files[0];
+
+const pdf = await client.convert({
+  file: file,
+  format: "pdf",
+});
+```
+
+```javascript Buffer (Node.js)
+const fs = require("fs");
+const fileBuffer = fs.readFileSync("./document.docx");
+
+const pdf = await client.convert({
+  file: fileBuffer,
+  format: "pdf",
+  filename: "document.docx", // Recommended when using Buffer
+});
+```
+
+```javascript With Progress Tracking
+const pdf = await client.convert({
+  file: "./large-document.docx",
+  format: "pdf",
+  onProgress: (progress) => {
+    console.log(`Upload: ${progress.loaded}/${progress.total} bytes`);
+    console.log(
+      `Progress: ${Math.round((progress.loaded / progress.total) * 100)}%`
+    );
+  },
+});
+```
+
+</CodeGroup>
+
+### health()
+
+Check the API health status.
+
+```javascript
+const health = await client.health();
+console.log(health); // { status: 'ok', timestamp: '2024-01-15T10:30:00Z' }
+```
+
+### info()
+
+Get API information and available endpoints.
+
+```javascript
+const info = await client.info();
+console.log(info.version); // API version
+console.log(info.endpoints); // Available endpoints
+```
+
+## Error Handling
+
+The SDK provides comprehensive error handling with specific error types:
+
+```javascript
+import {
+  SuperDoc,
+  SuperDocError,
+  RateLimitError,
+  AuthenticationError,
+} from "@superdoc/api";
+
+try {
+  const pdf = await client.convert({
+    file: "./document.docx",
+    format: "pdf",
+  });
+} catch (error) {
+  if (error instanceof AuthenticationError) {
+    console.error("Authentication failed:", error.message);
+    // Handle authentication error (e.g., redirect to login)
+  } else if (error instanceof RateLimitError) {
+    console.error("Rate limit exceeded:", error.message);
+    console.log("Retry after:", error.retryAfter, "seconds");
+    // Handle rate limiting (e.g., show retry timer)
+  } else if (error instanceof SuperDocError) {
+    console.error("API Error:", error.code, error.message);
+    console.log("Request ID:", error.requestId);
+    // Handle other API errors
+  } else {
+    console.error("Unexpected error:", error);
+    // Handle network or other errors
+  }
+}
+```
+
+### Error Types
+
+<AccordionGroup>
+  <Accordion title="SuperDocError" icon="exclamation-triangle">
+    Base class for all SuperDoc API errors
+    
+    ```javascript
+    class SuperDocError extends Error {
+      code: string;           // Error code (e.g., 'INVALID_FILE_TYPE')
+      message: string;        // Human-readable error message
+      requestId: string;      // Request ID for support
+      timestamp: string;      // Error timestamp
+      status: number;         // HTTP status code
+    }
+    ```
+  </Accordion>
+
+{" "}
+<Accordion title="AuthenticationError" icon="lock">
+  Authentication-related errors (401, 403) ```javascript // Thrown when API key
+  is invalid, missing, or expired if (error instanceof AuthenticationError){" "}
+  {
+    // Redirect to login or refresh API key
+  }
+  ```
+</Accordion>
+
+  <Accordion title="RateLimitError" icon="gauge">
+    Rate limiting errors (429)
+    
+    ```javascript
+    class RateLimitError extends SuperDocError {
+      retryAfter: number;     // Seconds to wait before retry
+      limit: number;          // Rate limit (requests per hour)
+      remaining: number;      // Remaining requests
+      reset: Date;            // When the limit resets
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="ValidationError" icon="exclamation">
+    Request validation errors (400)
+    
+    ```javascript
+    // Thrown for invalid file types, file too large, etc.
+    if (error instanceof ValidationError) {
+      // Show user-friendly validation message
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## TypeScript Support
+
+The SDK includes full TypeScript support with comprehensive type definitions:
+
+```typescript
+import {
+  SuperDoc,
+  ConvertOptions,
+  ConvertResult,
+  ProgressEvent,
+} from "@superdoc/api";
+
+const client = new SuperDoc("sd_live_pk_your_api_key");
+
+const options: ConvertOptions = {
+  file: "./document.docx",
+  format: "pdf",
+  onProgress: (progress: ProgressEvent) => {
+    console.log(`Progress: ${progress.loaded}/${progress.total}`);
+  },
+};
+
+const result: ConvertResult = await client.convert(options);
+```
+
+### Type Definitions
+
+```typescript
+interface ConvertOptions {
+  file: string | File | Buffer | ReadableStream;
+  format?: "pdf";
+  filename?: string;
+  onProgress?: (progress: ProgressEvent) => void;
+}
+
+interface ProgressEvent {
+  loaded: number;
+  total: number;
+  percentage: number;
+}
+
+type ConvertResult = Buffer | Blob;
+
+interface HealthResponse {
+  status: "ok" | "degraded" | "down";
+  timestamp: string;
+  checks?: {
+    database: boolean;
+    storage: boolean;
+    conversion: boolean;
+  };
+}
+```
+
+## Framework Integration
+
+### Express.js
+
+```javascript
+const express = require("express");
+const multer = require("multer");
+const { SuperDoc } = require("@superdoc/api");
+
+const app = express();
+const upload = multer();
+const client = new SuperDoc(process.env.SUPERDOC_API_KEY);
+
+app.post("/convert", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file provided" });
+    }
+
+    const pdf = await client.convert({
+      file: req.file.buffer,
+      format: "pdf",
+      filename: req.file.originalname,
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="converted.pdf"'
+    );
+    res.send(pdf);
+  } catch (error) {
+    console.error("Conversion error:", error);
+    res.status(500).json({
+      error: error.message,
+      code: error.code,
+      requestId: error.requestId,
+    });
+  }
+});
+```
+
+### Next.js API Route
+
+```javascript
+// pages/api/convert.js
+import { SuperDoc } from "@superdoc/api";
+import formidable from "formidable";
+import fs from "fs";
+
+const client = new SuperDoc(process.env.SUPERDOC_API_KEY);
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const form = formidable();
+  const [fields, files] = await form.parse(req);
+  const file = files.file[0];
+
+  try {
+    const pdf = await client.convert({
+      file: file.filepath,
+      format: "pdf",
+      filename: file.originalFilename,
+    });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.send(pdf);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      code: error.code,
+    });
+  } finally {
+    // Clean up temporary file
+    if (file.filepath) {
+      fs.unlinkSync(file.filepath);
+    }
+  }
+}
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+```
+
+### React Hook
+
+```javascript
+import { useState, useCallback } from "react";
+import { SuperDoc } from "@superdoc/api";
+
+const useDocumentConverter = (apiKey) => {
+  const [isConverting, setIsConverting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState(null);
+
+  const convert = useCallback(
+    async (file) => {
+      setIsConverting(true);
+      setProgress(0);
+      setError(null);
+
+      try {
+        // In production, never expose API keys in the browser
+        // This should be done through your backend API
+        const client = new SuperDoc(apiKey);
+
+        const pdf = await client.convert({
+          file,
+          format: "pdf",
+          onProgress: (progressEvent) => {
+            setProgress(progressEvent.percentage);
+          },
+        });
+
+        // Create download link
+        const url = URL.createObjectURL(pdf);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "converted.pdf";
+        a.click();
+        URL.revokeObjectURL(url);
+
+        return pdf;
+      } catch (err) {
+        setError(err);
+        throw err;
+      } finally {
+        setIsConverting(false);
+        setProgress(0);
+      }
+    },
+    [apiKey]
+  );
+
+  return { convert, isConverting, progress, error };
+};
+
+// Usage
+function DocumentConverter() {
+  const { convert, isConverting, progress, error } = useDocumentConverter();
+
+  const handleFileSelect = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      try {
+        await convert(file);
+      } catch (error) {
+        console.error("Conversion failed:", error);
+      }
+    }
+  };
+
+  return (
+    <div>
+      <input type="file" accept=".docx" onChange={handleFileSelect} />
+      {isConverting && <div>Converting... {Math.round(progress)}%</div>}
+      {error && <div>Error: {error.message}</div>}
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Security" icon="shield">
+    - **Never expose API keys in browser code** - Use backend proxy endpoints
+    - **Use environment variables** - Store API keys securely
+    - **Validate file uploads** - Check file types and sizes before processing
+    - **Implement rate limiting** - Add client-side rate limiting for better UX
+  </Accordion>
+
+{" "}
+<Accordion title="Performance" icon="rocket">
+  - **Stream large files** - Use streams for files > 10MB - **Implement progress
+  tracking** - Show upload/conversion progress - **Handle retries gracefully** -
+  Use exponential backoff for retries - **Cache results** - Cache converted
+  files when appropriate
+</Accordion>
+
+  <Accordion title="Error Handling" icon="exclamation-triangle">
+    - **Catch specific errors** - Handle different error types appropriately
+    - **Log request IDs** - Include request IDs in error logs for support
+    - **Provide user feedback** - Show meaningful error messages to users
+    - **Implement fallbacks** - Have backup plans for service interruptions
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Usage
+
+### Custom Retry Logic
+
+```javascript
+const client = new SuperDoc("sd_live_pk_your_api_key", {
+  retries: 0, // Disable built-in retries
+});
+
+async function convertWithCustomRetry(file, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await client.convert({ file, format: "pdf" });
+    } catch (error) {
+      if (attempt === maxRetries) throw error;
+
+      if (error instanceof RateLimitError) {
+        // Wait for rate limit reset
+        await new Promise((resolve) =>
+          setTimeout(resolve, error.retryAfter * 1000)
+        );
+      } else if (error.status >= 500) {
+        // Exponential backoff for server errors
+        const delay = Math.pow(2, attempt - 1) * 1000;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      } else {
+        // Don't retry client errors
+        throw error;
+      }
+    }
+  }
+}
+```
+
+### Batch Processing
+
+```javascript
+async function convertBatch(files, concurrency = 3) {
+  const results = [];
+  const errors = [];
+
+  // Process files in batches to respect rate limits
+  for (let i = 0; i < files.length; i += concurrency) {
+    const batch = files.slice(i, i + concurrency);
+
+    const batchPromises = batch.map(async (file, index) => {
+      try {
+        const pdf = await client.convert({ file, format: "pdf" });
+        return { success: true, file, pdf, index: i + index };
+      } catch (error) {
+        errors.push({ file, error, index: i + index });
+        return { success: false, file, error, index: i + index };
+      }
+    });
+
+    const batchResults = await Promise.allSettled(batchPromises);
+    results.push(...batchResults.map((r) => r.value || r.reason));
+
+    // Add delay between batches if needed
+    if (i + concurrency < files.length) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+
+  return { results, errors };
+}
+```
+
+## Migration Guide
+
+### From Direct API Calls
+
+If you're currently using direct API calls, here's how to migrate:
+
+<CodeGroup>
+```javascript Before (Direct API)
+const fetch = require('node-fetch');
+const FormData = require('form-data');
+const fs = require('fs');
+
+const form = new FormData();
+form.append('file', fs.createReadStream('document.docx'));
+
+const response = await fetch('https://api.superdoc.dev/v1/convert?format=pdf', {
+method: 'POST',
+headers: {
+'Authorization': `Bearer ${apiKey}`,
+...form.getHeaders()
+},
+body: form
+});
+
+const pdf = await response.buffer();
+
+````
+
+```javascript After (SDK)
+const { SuperDoc } = require('@superdoc/api');
+
+const client = new SuperDoc(apiKey);
+const pdf = await client.convert({
+  file: 'document.docx',
+  format: 'pdf'
+});
+````
+
+</CodeGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Module not found errors" icon="exclamation">
+    **Problem**: `Cannot find module '@superdoc/api'`
+    
+    **Solution**: 
+    - Ensure the package is installed: `npm install @superdoc/api`
+    - Check your Node.js version (requires Node.js 14+)
+    - Clear npm cache: `npm cache clean --force`
+  </Accordion>
+
+{" "}
+<Accordion title="Authentication errors" icon="lock">
+  **Problem**: `401 Unauthorized` or `Invalid API key` **Solution**: - Verify
+  your API key is correct - Check environment variables are loaded - Ensure API
+  key has proper permissions - Test with a fresh API key
+</Accordion>
+
+{" "}
+<Accordion title="File upload issues" icon="upload">
+  **Problem**: Files fail to upload or convert **Solution**: - Check file size
+  limits (25MB for authenticated, 5MB for public) - Ensure file is a valid DOCX
+  format - Verify file is not corrupted - Check network connectivity
+</Accordion>
+
+  <Accordion title="Browser compatibility" icon="browser">
+    **Problem**: SDK doesn't work in browser
+    
+    **Solution**:
+    - Use a bundler (Webpack, Rollup, etc.)
+    - For production, proxy requests through your backend
+    - Ensure polyfills for older browsers if needed
+    - Check CORS policy compliance
+  </Accordion>
+</AccordionGroup>
+
+## Support
+
+Need help with the JavaScript SDK?
+
+<CardGroup cols={2}>
+  <Card
+    title="GitHub Issues"
+    icon="github"
+    href="https://github.com/superdoc/javascript-sdk/issues"
+  >
+    Report bugs and request features
+  </Card>
+  <Card
+    title="Discord Community"
+    icon="discord"
+    href="https://discord.gg/superdoc"
+  >
+    Get help from the community
+  </Card>
+</CardGroup>{" "}

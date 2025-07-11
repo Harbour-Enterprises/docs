@@ -1,35 +1,38 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "SuperDoc API",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#6741D9",
+    "light": "#4B9CFF",
+    "dark": "#6741D9"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.ico",
+  "logo": {
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png",
+    "href": "https://superdoc.dev"
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Get Started",
+            "group": "Getting Started",
             "pages": [
               "index",
               "quickstart",
-              "development"
+              "authentication",
+              "rate-limits"
             ]
           },
           {
-            "group": "Essentials",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
+              "concepts/conversions",
+              "concepts/file-formats",
+              "concepts/error-handling"
             ]
           }
         ]
@@ -38,18 +41,23 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "API Documentation",
+            "group": "Overview",
             "pages": [
               "api-reference/introduction"
             ]
           },
           {
-            "group": "Endpoint Examples",
+            "group": "Document Conversion",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/endpoint/convert-to-pdf",
+              "api-reference/endpoint/public-convert"
+            ]
+          },
+          {
+            "group": "Health & Status",
+            "pages": [
+              "api-reference/endpoint/health",
+              "api-reference/endpoint/api-info"
             ]
           }
         ]
@@ -58,45 +66,61 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "GitHub",
+          "href": "https://github.com/Harbour-Enterprises/SuperDoc",
+          "icon": "github"
         },
         {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
+          "anchor": "Discord",
+          "href": "https://discord.gg/superdoc",
+          "icon": "discord"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Status",
+          "href": "https://status.superdoc.dev",
+          "icon": "signal"
         }
       ]
     }
   },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+  "openapi": "/api-reference/openapi.json",
+  "api": {
+    "baseUrl": "https://api.superdoc.dev",
+    "auth": {
+      "method": "bearer",
+      "name": "API Key"
+    },
+    "playground": {
+      "mode": "show"
+    }
   },
   "navbar": {
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:api@superdoc.dev"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Get API Key",
+      "href": "https://dashboard.superdoc.dev"
     }
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/superdoc",
+      "github": "https://github.com/Harbour-Enterprises/SuperDoc",
+      "linkedin": "https://linkedin.com/company/harbour-enterprises"
+    }
+  },
+  "feedback": {
+    "suggestEdit": true,
+    "raiseIssue": true
+  },
+  "analytics": {
+    "ga4": {
+      "measurementId": "G-XXXXXXXXXX"
     }
   }
 }

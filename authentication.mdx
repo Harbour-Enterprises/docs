@@ -1,0 +1,163 @@
+---
+title: Authentication
+description: Secure your API requests with proper authentication
+icon: "key"
+---
+
+## Overview
+
+The SuperDoc API uses **Bearer token authentication** with API keys. All API requests must include a valid API key in the `Authorization` header.
+
+## API Key Format
+
+SuperDoc API keys follow a specific format:
+
+```
+sd_{environment}_{type}_{random_string}
+```
+
+- **Environment**: `test` or `live`
+- **Type**: `pk` (public key) or `sk` (secret key)
+- **Random String**: Unique identifier
+
+### Examples
+
+- Test key: `sd_test_pk_a1b2c3d4e5f6...`
+- Live key: `sd_live_pk_h7i8j9k0l1m2...`
+
+## Authentication Methods
+
+### Bearer Token (Recommended)
+
+Include your API key in the `Authorization` header:
+
+```bash
+curl -X POST https://api.superdoc.dev/v1/convert?format=pdf \
+  -H "Authorization: Bearer sd_live_pk_your_api_key" \
+  -F "file=@document.docx"
+```
+
+<CodeGroup>
+```javascript JavaScript
+const headers = {
+  'Authorization': 'Bearer sd_live_pk_your_api_key'
+};
+```
+
+```python Python
+headers = {
+    'Authorization': 'Bearer sd_live_pk_your_api_key'
+}
+```
+
+```php PHP
+$headers = [
+    'Authorization' => 'Bearer sd_live_pk_your_api_key'
+];
+```
+
+```go Go
+headers := map[string]string{
+    "Authorization": "Bearer sd_live_pk_your_api_key",
+}
+```
+
+</CodeGroup>
+
+## Test vs Production Keys
+
+<Tabs>
+  <Tab title="Test Keys">
+    **Test Environment** (`sd_test_*`) - No charges applied - Limited to 100
+    requests per hour - Perfect for development and testing - Automatically
+    routes to test environment
+  </Tab>
+  <Tab title="Production Keys">
+    **Production Environment** (`sd_live_*`) - Full rate limits based on your
+    plan - Production-grade performance - Usage tracked for billing - Access to
+    all features
+  </Tab>
+</Tabs>
+
+## Security Best Practices
+
+<AccordionGroup>
+  <Accordion title="Never expose keys in client-side code" icon="browser">
+    API keys should only be used in server-side applications. Never include them
+    in: - Frontend JavaScript - Mobile applications - Public repositories -
+    Client-side code
+  </Accordion>
+
+  <Accordion title="Use environment variables" icon="gear">
+    Store API keys in environment variables: ```bash # .env file
+    SUPERDOC_API_KEY=sd_live_pk_your_api_key ``` ```javascript // Usage const
+    apiKey = process.env.SUPERDOC_API_KEY; ```
+  </Accordion>
+
+  <Accordion title="Rotate keys regularly" icon="rotate">
+    - Rotate production keys every 90 days - Immediately rotate if a key is
+    compromised - Use our key rotation API for zero-downtime rotation
+  </Accordion>
+
+  <Accordion title="Restrict key permissions" icon="lock">
+    When creating API keys: - Use read-only keys when possible - Limit keys to
+    specific IP addresses - Set expiration dates for temporary access
+  </Accordion>
+</AccordionGroup>
+
+## Managing API Keys
+
+### Create a New Key
+
+1. Log in to [dashboard.superdoc.dev](https://dashboard.superdoc.dev)
+2. Navigate to **API Keys**
+3. Click **Create New Key**
+4. Configure key settings:
+   - Name (for your reference)
+   - Environment (test/production)
+   - Permissions (if applicable)
+   - IP restrictions (optional)
+
+### Revoke a Key
+
+<Warning>
+  Revoking a key immediately invalidates it. Ensure you've updated your
+  applications before revoking.
+</Warning>
+
+1. Go to **API Keys** in the dashboard
+2. Find the key to revoke
+3. Click **Revoke Key**
+4. Confirm the action
+
+## Troubleshooting
+
+### Common Authentication Errors
+
+<ResponseField name="401 Unauthorized" type="error">
+  **Possible causes:** - Missing `Authorization` header - Malformed API key -
+  Revoked or expired key **Solution:** - Verify the `Authorization` header is
+  present - Check key format: `Bearer sd_...` - Confirm key is active in
+  dashboard
+</ResponseField>
+
+<ResponseField name="403 Forbidden" type="error">
+  **Possible causes:** - IP restriction violation - Insufficient permissions -
+  Feature not available in your plan **Solution:** - Check IP whitelist settings
+  - Verify key permissions - Upgrade plan if needed
+</ResponseField>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Make Your First Request" icon="rocket" href="/quickstart">
+    Start converting documents with your API key
+  </Card>
+  <Card
+    title="Explore Endpoints"
+    icon="compass"
+    href="/api-reference/introduction"
+  >
+    Discover all available API endpoints
+  </Card>
+</CardGroup>{" "}

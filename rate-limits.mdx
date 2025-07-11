@@ -1,0 +1,318 @@
+---
+title: Rate Limits
+description: Understanding SuperDoc API rate limits and best practices
+icon: "gauge"
+---
+
+## Overview
+
+SuperDoc API implements rate limiting to ensure fair usage and maintain service quality for all users. Rate limits are applied per API key and are based on your subscription plan.
+
+## Rate Limit Tiers
+
+<CardGroup cols={3}>
+  <Card title="Free Tier" icon="gift">
+    **100 requests/hour** - 1,000 requests/day - 5MB max file size - Best for
+    testing and small projects
+  </Card>
+  <Card title="Pro Tier" icon="star">
+    **1,000 requests/hour** - 10,000 requests/day - 25MB max file size -
+    Priority support
+  </Card>
+  <Card title="Enterprise" icon="building">
+    **Custom limits** - Unlimited requests* - 100MB+ file sizes - Dedicated
+    infrastructure
+  </Card>
+</CardGroup>
+
+\*Subject to fair usage policy
+
+## Rate Limit Headers
+
+Every API response includes rate limit information in the headers:
+
+```http
+HTTP/1.1 200 OK
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1673612400
+X-RateLimit-Retry-After: 3600
+```
+
+<ResponseField name="X-RateLimit-Limit" type="number">
+  Total number of requests allowed in the current window
+</ResponseField>
+
+<ResponseField name="X-RateLimit-Remaining" type="number">
+  Number of requests remaining in the current window
+</ResponseField>
+
+<ResponseField name="X-RateLimit-Reset" type="number">
+  Unix timestamp when the current window resets
+</ResponseField>
+
+<ResponseField name="X-RateLimit-Retry-After" type="number">
+  Seconds to wait before making another request (only present when rate limited)
+</ResponseField>
+
+## Rate Limit Windows
+
+Rate limits are calculated using **sliding windows**:
+
+| Limit Type | Window Size | Reset Behavior         |
+| ---------- | ----------- | ---------------------- |
+| Hourly     | 60 minutes  | Rolling window         |
+| Daily      | 24 hours    | Resets at midnight UTC |
+
+<Info>
+  Sliding windows provide fairer usage distribution compared to fixed windows.
+</Info>
+
+## Handling Rate Limits
+
+### 429 Rate Limited Response
+
+When you exceed your rate limit, the API returns:
+
+```json
+{
+  "code": "RATE_LIMIT_EXCEEDED",
+  "error": "Too Many Requests",
+  "message": "Rate limit exceeded. Try again in 3600 seconds.",
+  "requestId": "req_abc123",
+  "retryAfter": 3600
+}
+```
+
+### Best Practices
+
+<AccordionGroup>
+  <Accordion title="Implement exponential backoff" icon="clock">
+    When you receive a 429 response:
+    ```javascript
+    async function convertWithRetry(file, maxRetries = 3) {
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          return await convert(file);
+        } catch (error) {
+          if (error.status === 429) {
+            const delay = Math.pow(2, i) * 1000; // Exponential backoff
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          throw error;
+        }
+      }
+      throw new Error('Max retries exceeded');
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Monitor rate limit headers" icon="chart-line">
+    Check remaining requests before making calls:
+    ```javascript
+    const response = await fetch('/v1/convert', options);
+    const remaining = response.headers.get('X-RateLimit-Remaining');
+    
+    if (remaining < 10) {
+      console.warn('Approaching rate limit');
+      // Implement queuing or delay logic
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Batch processing" icon="layer-group">
+    For large volumes, process files in batches:
+    ```javascript
+    async function batchConvert(files, batchSize = 10) {
+      const results = [];
+      
+      for (let i = 0; i < files.length; i += batchSize) {
+        const batch = files.slice(i, i + batchSize);
+        const batchResults = await Promise.all(
+          batch.map(file => convertWithRetry(file))
+        );
+        results.push(...batchResults);
+        
+        // Optional: Add delay between batches
+        if (i + batchSize < files.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
+      return results;
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Use webhooks for async processing" icon="webhook">
+    For high-volume scenarios, consider async processing:
+    - Submit conversion jobs to a queue
+    - Receive results via webhooks
+    - Avoid blocking API calls
+  </Accordion>
+</AccordionGroup>
+
+## Rate Limit Strategies
+
+### Queue-Based Processing
+
+```javascript
+class ConversionQueue {
+  constructor(maxConcurrent = 5) {
+    this.queue = [];
+    this.running = 0;
+    this.maxConcurrent = maxConcurrent;
+  }
+
+  async add(file) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ file, resolve, reject });
+      this.process();
+    });
+  }
+
+  async process() {
+    if (this.running >= this.maxConcurrent || this.queue.length === 0) {
+      return;
+    }
+
+    this.running++;
+    const { file, resolve, reject } = this.queue.shift();
+
+    try {
+      const result = await convertWithRetry(file);
+      resolve(result);
+    } catch (error) {
+      reject(error);
+    } finally {
+      this.running--;
+      this.process(); // Process next item
+    }
+  }
+}
+```
+
+### Distributed Rate Limiting
+
+For applications with multiple servers:
+
+```javascript
+// Using Redis for shared rate limit state
+const redis = require("redis");
+const client = redis.createClient();
+
+async function checkRateLimit(apiKey) {
+  const key = `rate_limit:${apiKey}`;
+  const current = await client.get(key);
+
+  if (current && parseInt(current) >= RATE_LIMIT) {
+    throw new Error("Rate limit exceeded");
+  }
+
+  await client
+    .multi()
+    .incr(key)
+    .expire(key, 3600) // 1 hour
+    .exec();
+}
+```
+
+## Upgrading Your Limits
+
+### When to Upgrade
+
+Consider upgrading when you:
+
+- Consistently hit rate limits
+- Need to process large batches
+- Require higher file size limits
+- Want priority support
+
+### Plan Comparison
+
+| Feature         | Free      | Pro   | Enterprise |
+| --------------- | --------- | ----- | ---------- |
+| Requests/hour   | 100       | 1,000 | Custom     |
+| File size limit | 5MB       | 25MB  | 100MB+     |
+| Support         | Community | Email | Dedicated  |
+| SLA             | None      | 99.9% | 99.99%     |
+
+<Card
+  title="Upgrade Your Plan"
+  icon="arrow-up"
+  href="https://dashboard.superdoc.dev/billing"
+>
+  Increase your rate limits and unlock additional features
+</Card>
+
+## Monitoring and Alerts
+
+### Dashboard Metrics
+
+Monitor your usage in the [dashboard](https://dashboard.superdoc.dev):
+
+- Real-time request counts
+- Rate limit utilization
+- Error rates
+- Response times
+
+### API Usage Alerts
+
+Set up alerts for:
+
+- 80% rate limit utilization
+- Repeated 429 errors
+- Unusual traffic spikes
+- API key compromise indicators
+
+## Troubleshooting
+
+<Warning>Common rate limiting issues and solutions:</Warning>
+
+### Unexpected Rate Limits
+
+**Problem**: Getting 429 errors with low usage
+
+**Solutions**:
+
+- Check for multiple API keys sharing limits
+- Verify your plan tier in the dashboard
+- Contact support if limits seem incorrect
+
+### Inconsistent Rate Limiting
+
+**Problem**: Rate limits vary between requests
+
+**Causes**:
+
+- Multiple servers with different clocks
+- Sliding window calculations
+- Burst vs sustained usage
+
+**Solutions**:
+
+- Implement client-side rate limiting
+- Add jitter to request timing
+- Use queue-based processing
+
+## Contact Support
+
+Need higher limits or custom rate limiting?
+
+<CardGroup cols={2}>
+  <Card
+    title="Enterprise Sales"
+    icon="handshake"
+    href="mailto:sales@superdoc.dev"
+  >
+    Discuss custom rate limits and enterprise features
+  </Card>
+  <Card
+    title="Technical Support"
+    icon="life-ring"
+    href="mailto:support@superdoc.dev"
+  >
+    Get help with rate limiting issues
+  </Card>
+</CardGroup>{" "}
